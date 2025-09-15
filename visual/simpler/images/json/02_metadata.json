@@ -1,0 +1,46 @@
+{
+    "image_name": "02.jpg",
+    "original_path": "images\\input\\02.jpg",
+    "processing_date": "2025-09-15T23:15:28.437256",
+    "variations": [
+        {
+            "style": "standard",
+            "character_set": "standard",
+            "parameters": {
+                "brightness": 1.14,
+                "contrast": 1.16,
+                "saturation": 1.13,
+                "scale_factor": 0.5
+            },
+            "output_path": "02\\02_standard.html",
+            "columns": 100,
+            "width_ratio": 2.2
+        },
+        {
+            "style": "dramatic",
+            "character_set": "standard",
+            "parameters": {
+                "brightness": 0.79,
+                "contrast": 1.35,
+                "saturation": 1.6,
+                "scale_factor": 0.5
+            },
+            "output_path": "02\\02_dramatic.html",
+            "columns": 100,
+            "width_ratio": 2.2
+        },
+        {
+            "style": "bright",
+            "character_set": "binary",
+            "parameters": {
+                "brightness": 1.44,
+                "contrast": 1.11,
+                "saturation": 0.99,
+                "scale_factor": 0.5
+            },
+            "output_path": "02\\02_bright.html",
+            "columns": 100,
+            "width_ratio": 2.2
+        }
+    ]
+}

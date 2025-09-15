@@ -1,0 +1,46 @@
+{
+    "image_name": "goldie.jpg",
+    "original_path": "images\\input\\goldie.jpg",
+    "processing_date": "2025-09-15T23:15:32.933411",
+    "variations": [
+        {
+            "style": "standard",
+            "character_set": "numbers",
+            "parameters": {
+                "brightness": 0.93,
+                "contrast": 1.33,
+                "saturation": 1.17,
+                "scale_factor": 0.5
+            },
+            "output_path": "goldie\\goldie_standard.html",
+            "columns": 100,
+            "width_ratio": 2.2
+        },
+        {
+            "style": "dramatic",
+            "character_set": "standard",
+            "parameters": {
+                "brightness": 0.8,
+                "contrast": 1.52,
+                "saturation": 1.48,
+                "scale_factor": 0.5
+            },
+            "output_path": "goldie\\goldie_dramatic.html",
+            "columns": 100,
+            "width_ratio": 2.2
+        },
+        {
+            "style": "bright",
+            "character_set": "numbers",
+            "parameters": {
+                "brightness": 1.28,
+                "contrast": 1.21,
+                "saturation": 1.31,
+                "scale_factor": 0.5
+            },
+            "output_path": "goldie\\goldie_bright.html",
+            "columns": 100,
+            "width_ratio": 2.2
+        }
+    ]
+}

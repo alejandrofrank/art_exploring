@@ -1,0 +1,10 @@
+# ASCII Art Generator Dependencies
+
+# Core Image Processing
+Pillow==10.4.0  # PIL - Python Imaging Library for image manipulation
+
+# Optional Dependencies for Enhanced Development
+# (Uncomment if you want to experiment with the code in Jupyter notebooks)
+# ipykernel==6.29.5  # Jupyter Notebook Support
+# jupyter_client==8.6.3
+# jupyter_core==5.7.2
