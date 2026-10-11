@@ -1,0 +1,12 @@
+{
+  "name": "raster-lab",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A local-first pixel, dither and ASCII image workbench",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": { "node": ">=22" }
+}
