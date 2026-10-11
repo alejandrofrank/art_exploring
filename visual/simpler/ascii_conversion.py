@@ -4,6 +4,8 @@ from enum import Enum
 from typing import List, Tuple, Optional
 import colorsys
 import random
+import html
+import math
 
 class Modes(Enum):
     ASCII = 'ascii'
@@ -73,16 +75,22 @@ class AsciiMagic:
         'minimal': 0.05    # 5% chance
     }
 
-    def __init__(self, image: Image.Image):
+    def __init__(self, image: Image.Image, char_set: str = 'standard', seed: int = 42):
         self._image = image
+        self.seed = seed
+        self._rng = random.Random(seed)
         self._setup_color_palette()
-        self._chars_by_density = self._select_char_set()
+        if char_set not in self.CHAR_SETS and char_set != 'random':
+            raise ValueError(f'Unknown character set: {char_set}')
+        self.selected_char_set = char_set
+        self._chars_by_density = self._select_char_set() if char_set == 'random' else self.CHAR_SETS[char_set]
+        self.set_size()
 
     def _select_char_set(self) -> str:
         """Randomly select a character set based on weights"""
         items = list(self.CHAR_SET_WEIGHTS.items())
         choices, weights = zip(*items)
-        selected = random.choices(choices, weights=weights, k=1)[0]
+        selected = self._rng.choices(choices, weights=weights, k=1)[0]
         print(f"Selected character set: {selected}")
         self.selected_char_set = selected  # Store the selection
         return self.CHAR_SETS[selected]
@@ -104,14 +112,14 @@ class AsciiMagic:
                 elif effect == 'high_contrast':
                     self.enhance_image(contrast=1.8, saturation=1.2)
     @classmethod
-    def from_image(cls, path: str) -> 'AsciiMagic':
+    def from_image(cls, path: str, char_set: str = 'standard', seed: int = 42) -> 'AsciiMagic':
         """Create AsciiMagic instance from image file"""
         try:
             with Image.open(path) as img:
                 if img.mode != 'RGB':
                     img = img.convert('RGB')
                 image_copy = img.copy()
-            return cls(image_copy)
+            return cls(image_copy, char_set=char_set, seed=seed)
         except Exception as e:
             print(f"Error opening image {path}: {str(e)}")
             raise
@@ -125,7 +133,7 @@ class AsciiMagic:
             self.PALETTE.append({
                 'rgb': (r, g, b),
                 'hsv': hsv,
-                'hex': hex_color
+                'hex': '#{:02x}{:02x}{:02x}'.format(*rgb)
             })
 
     def set_size(self, scale_factor: float = 1.0) -> None:
@@ -134,6 +142,8 @@ class AsciiMagic:
         Args:
             scale_factor: Factor to scale the art (1.0 is default, 2.0 is twice as big)
         """
+        if not math.isfinite(scale_factor) or scale_factor <= 0:
+            raise ValueError('Scale factor must be a finite positive number')
         self.DEFAULT_STYLES = f'''
             display: inline-block;
             border-width: {4 * scale_factor}px {6 * scale_factor}px;
@@ -217,7 +227,7 @@ class AsciiMagic:
             return char
         
         hex_color = self._find_closest_color(pixel) if mode == Modes.HTML else '#FFFFFF'
-        return f'<span style="color: {hex_color}">{char}</span>'
+        return f'<span style="color: {hex_color}">{html.escape(char)}</span>'
 
     def to_ascii_art(self, columns: int = 500, width_ratio: float = 4.4, mode: Modes = Modes.HTML) -> str:
         """Convert image to ASCII art with improved quality
@@ -227,10 +237,16 @@ class AsciiMagic:
             width_ratio: Adjusts for character width vs height (reduced from 2.2 to 1.8 for better proportions)
             mode: Output mode (ASCII, HTML, etc.)
         """
+        if not isinstance(columns, int) or not 1 <= columns <= 1000:
+            raise ValueError('Columns must be an integer from 1 to 1000')
+        if not math.isfinite(width_ratio) or width_ratio <= 0:
+            raise ValueError('Width ratio must be a finite positive number')
         img_w, img_h = self._image.size
         scalar = img_w * width_ratio / columns
         new_w = int(img_w * width_ratio / scalar)
-        new_h = int(img_h / scalar)
+        new_h = max(1, int(img_h / scalar))
+        if new_w * new_h > 1_000_000:
+            raise ValueError('Output exceeds one million characters; use fewer columns')
         
         rgb_img = self._image.resize((new_w, new_h), Image.Resampling.LANCZOS)
         grayscale_img = rgb_img.convert("L")
@@ -258,10 +274,10 @@ class AsciiMagic:
         mode = Modes.HTML_MONOCHROME if monochrome else Modes.HTML
         art = self.to_ascii_art(columns=columns, width_ratio=width_ratio, mode=mode)
         
-        html = f"""<!DOCTYPE html>
+        document = f"""<!DOCTYPE html>
 <html>
 <head>
-    <title>ASCII Art - {os.path.basename(path)}</title>
+    <title>ASCII Art - {html.escape(os.path.basename(path))}</title>
     <meta charset="utf-8">
     <style>
         body {{ background: black; margin: 20px; }}
@@ -274,4 +290,4 @@ class AsciiMagic:
 </html>"""
         
         with open(path, 'w', encoding='utf-8') as f:
-            f.write(html)
+            f.write(document)

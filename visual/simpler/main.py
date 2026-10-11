@@ -28,16 +28,17 @@ variations = {
     }
 }
 
-def random_adjust(value: float, variance: float = 0.2) -> float:
+def random_adjust(value: float, variance: float = 0.2, rng=None) -> float:
     """Add random variance to a value within a percentage range"""
-    adjustment = 1.0 + random.uniform(-variance, variance)
+    adjustment = 1.0 + (rng or random.Random(42)).uniform(-variance, variance)
     return value * adjustment
 
 def create_style_variations(file_path: str, image_name: str, 
                           columns: int, width_ratio: float,
                           scale_factor: float,
                           randomize: bool = False,
-                          random_variance: float = 0.2) -> list:
+                          random_variance: float = 0.2,
+                          char_set: str = 'standard', seed: int = 42) -> list:
     # Create output directory
     base_name = os.path.splitext(image_name)[0]
     image_folder = os.path.join(OUTPUT_DIR, base_name)
@@ -47,11 +48,13 @@ def create_style_variations(file_path: str, image_name: str,
     variations_metadata = []
 
     # Process each variation
-    for style_name, params in variations.items():
+    for style_index, (style_name, params) in enumerate(variations.items()):
         try:
             print(f"\nCreating {style_name} variation:")
             # Create a fresh instance for each variation
-            current_art = AsciiMagic.from_image(file_path)
+            variation_seed = seed + style_index
+            rng = random.Random(variation_seed)
+            current_art = AsciiMagic.from_image(file_path, char_set=char_set, seed=variation_seed)
             
             # Apply size scaling
             current_art.set_size(scale_factor)
@@ -62,9 +65,9 @@ def create_style_variations(file_path: str, image_name: str,
             if randomize:
                 # Randomize parameters within variance
                 randomized_params = {
-                    'brightness': random_adjust(params['brightness'], random_variance),
-                    'contrast': random_adjust(params['contrast'], random_variance),
-                    'saturation': random_adjust(params['saturation'], random_variance)
+                    'brightness': random_adjust(params['brightness'], random_variance, rng),
+                    'contrast': random_adjust(params['contrast'], random_variance, rng),
+                    'saturation': random_adjust(params['saturation'], random_variance, rng)
                 }
                 params = randomized_params
                 print(f"Randomized parameters: {params}")
@@ -84,10 +87,11 @@ def create_style_variations(file_path: str, image_name: str,
             variation_data = {
                 'style': style_name,
                 'character_set': char_set_type,
+                'seed': variation_seed,
                 'parameters': {
-                    'brightness': round(params['brightness'], 2),
-                    'contrast': round(params['contrast'], 2),
-                    'saturation': round(params['saturation'], 2),
+                    'brightness': params['brightness'],
+                    'contrast': params['contrast'],
+                    'saturation': params['saturation'],
                     'scale_factor': scale_factor
                 },
                 'output_path': os.path.relpath(output_path, OUTPUT_DIR),
@@ -100,6 +104,7 @@ def create_style_variations(file_path: str, image_name: str,
             
         except Exception as e:
             print(f"Error creating {style_name} variation: {str(e)}")
+            raise
     
     return variations_metadata
 
@@ -122,7 +127,7 @@ def save_metadata(image_name: str, variations_data: list):
 
 def process_images(args):
     """Process all images with given arguments"""
-    for image_name in os.listdir(INPUT_DIR):
+    for image_name in sorted(os.listdir(INPUT_DIR)):
         if image_name.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
             print(f"Processing: {image_name}")
             try:
@@ -133,11 +138,13 @@ def process_images(args):
                     columns=args.columns,
                     width_ratio=args.width_ratio,
                     scale_factor=args.scale_factor,
-                    randomize=args.randomize
+                    randomize=args.randomize,
+                    char_set=args.char_set, seed=args.seed
                 )
                 save_metadata(image_name, variations_data)
             except Exception as e:
                 print(f"Error processing {image_name}: {str(e)}")
+                raise
             print()
 
 def main():
@@ -151,6 +158,8 @@ def main():
     parser.add_argument('--width-ratio', type=float, default=2.2, help='Width ratio adjustment')
     parser.add_argument('--scale-factor', type=float, default=1.0, help='Scale factor for output size')
     parser.add_argument('--randomize', action='store_true', help='Add random variance to parameters')
+    parser.add_argument('--char-set', choices=[*AsciiMagic.CHAR_SETS, 'random'], default='standard', help='Explicit character set, or seeded random selection')
+    parser.add_argument('--seed', type=int, default=42, help='Reproducible seed for optional randomization (default: 42)')
     args = parser.parse_args()
     
     print(f"Processing images from: {os.path.abspath(INPUT_DIR)}")
