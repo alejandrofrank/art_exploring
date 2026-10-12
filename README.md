@@ -1,95 +1,60 @@
-# ASCII Art Generator
+# ASCII art experiments
 
-A sophisticated image-to-ASCII art converter that transforms images into artistic text-based representations with multiple visual styles and character sets.
+Turn images into colored, text-based artwork. A Python converter produces HTML with three visual treatments and several character sets.
 
-## Features
+![One source image beside its standard, dramatic, and bright ASCII conversions](docs/examples.png)
 
-- **Multiple Character Sets**: Standard ASCII, Binary (0,1), Numbers (0-9), Letters (A-Z), Minimal (Xx)
-- **Artistic Style Variations**: Standard, Dramatic, and Bright presets
-- **Advanced Image Processing**: Brightness, contrast, and saturation adjustments
-- **Randomization**: Optional parameter variance for unique artistic results
-- **Batch Processing**: Convert multiple images automatically
-- **HTML Output**: Colored ASCII art viewable in web browsers
-- **Metadata Tracking**: Complete processing parameters saved as JSON
+**[Full-size comparison](docs/examples.png)** · **[Browse saved HTML outputs](visual/simpler/images/output)**
 
-## Installation
+## What it does
 
-1. **Clone the repository**
+- Converts every supported image in an input folder into **standard**, **dramatic**, and **bright** treatments.
+- Chooses from ASCII, binary, numbers, letters, or a minimal `Xx` character set.
+- Adjusts brightness, contrast, saturation, character columns, and display scale.
+- Saves colored HTML plus JSON metadata recording the character set and processing parameters.
+
+The examples above use the existing `04.jpg` sample and its checked-in outputs. That run used randomized adjustments, recorded in the sample metadata. Character sets are randomly selected for each treatment, so a fresh run can look different. The `--randomize` option additionally varies the image adjustments.
+
+## Run it
+
+Use Python 3.10 or newer with Pillow.
+
 ```bash
-git clone <repository-url>
-cd crypto
-```
-
-2. **Install dependencies**
-```bash
-pip install -r requirements.txt
-```
-
-## Usage
-
-### Basic Usage
-```bash
+git clone https://github.com/alejandrofrank/art_exploring.git
+cd art_exploring
+python -m pip install -r requirements.txt
 cd visual/simpler
 python main.py
 ```
 
-### Advanced Options
+Put your own images in `visual/simpler/images/input/`. Open generated HTML from `visual/simpler/images/output/` in a browser. Processing metadata is saved to `visual/simpler/images/json/`.
+
 ```bash
-# High resolution output
-python main.py --columns 300 --scale-factor 2.0
+# More character detail
+python main.py --columns 300 --scale-factor 2
 
-# Artistic experimentation with randomization
-python main.py --columns 150 --randomize --scale-factor 1.5
+# Vary brightness, contrast, and saturation around each preset
+python main.py --columns 150 --randomize
 
-# Compact output for quick previews
-python main.py --columns 50 --scale-factor 0.3
-
-# Custom width ratio
-python main.py --columns 200 --width-ratio 1.8
+# Smaller output
+python main.py --columns 50 --scale-factor 0.5
 ```
 
-### Command Line Options
-- `--columns`: Number of characters per line (default: 150)
-- `--width-ratio`: Width ratio adjustment (default: 2.2)
-- `--scale-factor`: Scale factor for output size (default: 1.0)
-- `--randomize`: Add random variance to parameters
+| Option | Default | Effect |
+| --- | --- | --- |
+| `--columns` | `150` | Character columns in the generated image |
+| `--width-ratio` | `2.2` | Compensation for character proportions |
+| `--scale-factor` | `1.0` | HTML character size and borders |
+| `--randomize` | Off | Variation around each treatment's enhancement settings |
 
-## Input and Output
+## How it works
 
-- **Input Directory**: `visual/simpler/images/input/`
-  - Supports: PNG, JPG, JPEG, BMP, GIF formats
-  
-- **Output Directory**: `visual/simpler/images/output/`
-  - Creates HTML files with colored ASCII art
-  - Organized by image name with style variations
-  
-- **Metadata Directory**: `visual/simpler/images/json/`
-  - JSON files containing processing parameters and settings
+Pillow resizes the source image to a character grid. Pixel brightness selects a character; color is matched against a fixed palette using HSV distance. The result is written as styled HTML, with a separate metadata file for each input image.
 
-## Style Variations
+`main.py` handles batches and presets. `ascii_conversion.py` handles image processing, character selection, palette matching, and HTML output. Open `docs/gallery.html` locally to compare the checked-in examples; conversion runs in Python.
 
-Each image is processed into three artistic styles:
+## Status and sample assets
 
-1. **Standard**: Balanced brightness (1.0), enhanced contrast (1.2), vivid saturation (1.3)
-2. **Dramatic**: Darker brightness (0.8), high contrast (1.5), intense saturation (1.5)
-3. **Bright**: Enhanced brightness (1.3), moderate contrast (1.1), warm saturation (1.2)
+An experimental art tool. The saved examples make it possible to inspect the results without installing dependencies.
 
-## Character Sets
-
-The generator randomly selects from five character sets:
-- **Standard** (40%): Full ASCII character range for maximum detail
-- **Binary** (20%): 0s and 1s for digital/cyberpunk aesthetic
-- **Numbers** (20%): 0-9 for numeric art style
-- **Letters** (15%): A-Z alphabet characters
-- **Minimal** (5%): Just X and x for high contrast
-
-## Examples
-
-Add your images to `visual/simpler/images/input/` and run the converter. Results will be saved as HTML files that you can open in any web browser to view your ASCII art masterpieces!
-
-## Technical Details
-
-- **Color Matching**: Advanced HSV color space analysis for accurate color representation
-- **Image Enhancement**: PIL-based brightness, contrast, and saturation adjustments
-- **Quality Resampling**: LANCZOS algorithm for high-quality image resizing
-- **Aspect Ratio Preservation**: Maintains original image proportions
+Sample images are included for demonstration. I do not claim ownership of third-party source artwork; rights remain with the respective creators. Use images you own or have permission to transform when making your own work.
