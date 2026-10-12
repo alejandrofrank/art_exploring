@@ -1,60 +1,88 @@
-# ASCII art experiments
+# Raster Lab
 
-Turn images into colored, text-based artwork. A Python converter produces HTML with three visual treatments and several character sets.
+A browser workbench for exploring how an image changes when represented with pixels, a limited palette, dithering or characters. Evolved from the Python ASCII experiments in this repository.
 
-![One source image beside its standard, dramatic, and bright ASCII conversions](docs/examples.png)
+**[Open the live lab](https://raster-lab.alejandrofranks.workers.dev)** · [Processing core](studio/core.mjs) · [Tests](tests)
 
-**[Full-size comparison](docs/examples.png)** · **[Browse saved HTML outputs](visual/simpler/images/output)**
+Open a built-in experiment or your own image, keep a treatment as **A**, then change **B**. Export the result as PNG and save its recipe to reproduce it later. Image processing runs on your device; the app has no upload endpoint, account, analytics or external image dependencies.
 
-## What it does
+## What you can explore
 
-- Converts every supported image in an input folder into **standard**, **dramatic**, and **bright** treatments.
-- Chooses from ASCII, binary, numbers, letters, or a minimal `Xx` character set.
-- Adjusts brightness, contrast, saturation, character columns, and display scale.
-- Saves colored HTML plus JSON metadata recording the character set and processing parameters.
+| Mode | Controls | Useful for |
+| --- | --- | --- |
+| Pixels | Grid resolution, palette, image adjustments | Reducing an image to its shapes and color blocks |
+| Dither | Bayer 4 × 4, Floyd–Steinberg, Atkinson; strength | Comparing ordered patterns with error diffusion |
+| ASCII | Five explicit character sets, color or monochrome | Representing brightness with fixed bitmap glyphs |
 
-The examples above use the existing `04.jpg` sample and its checked-in outputs. That run used randomized adjustments, recorded in the sample metadata. Character sets are randomly selected for each treatment, so a fresh run can look different. The `--randomize` option additionally varies the image adjustments.
+Shared tools: brightness, contrast, saturation, optional seeded grain, editable 2–16-color palettes, four palette presets, median-cut palette extraction, alpha preservation or matte compositing, original/A/B comparison, synchronized scrolling at 1:1/2×/4×, PNG export at integer scale, ASCII text export, JSON recipe import/export. The three procedural gallery samples open both the source and its recipe.
 
-## Run it
+## Run locally
 
-Use Python 3.10 or newer with Pillow.
+Requires Node.js 22 or newer. The studio has **no npm dependencies and no build step**.
 
-```bash
+```sh
 git clone https://github.com/alejandrofrank/art_exploring.git
 cd art_exploring
+npm run dev
+```
+
+Open the address printed by the server (default `http://127.0.0.1:4314`). Set `PORT` if that port is in use. Serve `studio/` over HTTP rather than opening `index.html` directly: module workers require a web origin.
+
+```sh
+npm test
+```
+
+## How the renderer works
+
+1. **Sample.** Average source regions into a bounded grid, premultiplying by alpha so invisible colors do not bleed into visible pixels. ASCII compensates for its 6 × 8 cell proportions.
+2. **Adjust.** Apply saturation, brightness and contrast, then optional seeded grain. The original image stays unchanged.
+3. **Represent.** Choose nearest palette colors with weighted RGB distance. Ordered dithering offsets the threshold; diffusion carries error forward. ASCII chooses characters from brightness and paints hand-authored 5 × 7 glyphs.
+4. **Export.** Preview and PNG share the same RGBA buffer. Export scaling uses integer nearest-neighbor enlargement, preserving the pixel grid.
+
+`studio/core.mjs` is pure JavaScript shared by Node tests and a browser worker. New requests terminate superseded workers so stale renders cannot replace the current treatment. `bitmap.mjs` supplies fixed glyphs; PNG appearance does not depend on installed fonts. `samples.mjs` generates original fixtures without downloads. Render timing reports actual worker processing on the current device, excluding decode, startup and painting.
+
+Palette usage describes grid-cell color assignments, not final PNG color frequencies (ASCII backgrounds and monochrome glyphs can add other colors). Nearest-color matching operates on encoded RGB, not a perceptually uniform color space. This is an inspectable creative tool, not a color-proofing application.
+
+## Recipes and reproducibility
+
+Recipes record the format version, renderer version, every setting, exact palette and grain seed. Bundled samples have stable IDs. User images are identified by dimensions and a SHA-256 fingerprint of the decoded, normalized RGBA data; **the image itself is not included**. Reopen the source file after importing its recipe. A mismatch is shown explicitly.
+
+Given the same normalized pixels, engine version and settings, the core produces the same pixels. Browser image decoding/color management and resizing can differ; the fingerprint catches these differences. Recipes do not store the frozen comparison pane. ASCII `.txt` exports contain the character grid, while the bitmap PNG is the portable visual result.
+
+Bounds: PNG/JPEG/WebP input up to 20 MB, normalized to 1600 px on the longest edge; 16–320 requested columns and at most 384 rows; 2–16 palette colors; output capped at 4096 px per edge with integer scale; recipes up to 32 KB. Tall images may use fewer columns to stay within the grid limit. No video, animation, layers or regional painting in v1.
+
+## Original Python converter
+
+The original batch workflow remains in `visual/simpler/`, with its checked-in examples preserved. It uses its own older HSV palette matching and system-font HTML output; it does not reproduce browser recipes.
+
+[Original comparison image](docs/examples.png) · [Saved HTML gallery](docs/gallery.html). Historical sample artwork may belong to third parties; rights remain with its creators. Use images you own or have permission to transform. The browser studio uses newly authored procedural samples instead.
+
+```sh
 python -m pip install -r requirements.txt
 cd visual/simpler
-python main.py
+python main.py --columns 150 --char-set standard
+python main.py --columns 150 --char-set random --randomize --seed 42
 ```
 
-Put your own images in `visual/simpler/images/input/`. Open generated HTML from `visual/simpler/images/output/` in a browser. Processing metadata is saved to `visual/simpler/images/json/`.
+Input comes from `images/input/`; HTML goes to `images/output/` and metadata to `images/json/`. Running this batch command can overwrite outputs with matching names. Character choice is now explicit (`standard`, `binary`, `numbers`, `letters`, `minimal`, `random`); default runs use `standard`. Optional randomization uses recorded per-variation seeds and exact enhancement values. HTML escapes character text, validates dimensions, and derives palette hex values from their RGB values.
 
-```bash
-# More character detail
-python main.py --columns 300 --scale-factor 2
+From the repository root:
 
-# Vary brightness, contrast, and saturation around each preset
-python main.py --columns 150 --randomize
-
-# Smaller output
-python main.py --columns 50 --scale-factor 0.5
+```sh
+python -m unittest discover -s tests -p test_legacy.py
 ```
 
-| Option | Default | Effect |
-| --- | --- | --- |
-| `--columns` | `150` | Character columns in the generated image |
-| `--width-ratio` | `2.2` | Compensation for character proportions |
-| `--scale-factor` | `1.0` | HTML character size and borders |
-| `--randomize` | Off | Variation around each treatment's enhancement settings |
+Tests use temporary directories and do not modify existing experiments.
 
-## How it works
+## Publish
 
-Pillow resizes the source image to a character grid. Pixel brightness selects a character; color is matched against a fixed palette using HSV distance. The result is written as styled HTML, with a separate metadata file for each input image.
+Deploy only `studio/`. No server-side code or secrets are needed. `wrangler.jsonc` is configured for a Cloudflare static-assets Worker named `raster-lab`. With Wrangler 4 installed and authenticated:
 
-`main.py` handles batches and presets. `ascii_conversion.py` handles image processing, character selection, palette matching, and HTML output. Open `docs/gallery.html` locally to compare the checked-in examples; conversion runs in Python.
+```sh
+wrangler deploy --dry-run
+wrangler deploy
+```
 
-## Status and sample assets
+The existing deployment is manual; pushing to GitHub runs verification, not deployment. The GitHub workflow checks the browser core and Python regression suite. Browser smoke checks also cover sample switching, A/B comparison, palette extraction, recipe restoration, PNG/TXT downloads and mobile overflow.
 
-An experimental art tool. The saved examples make it possible to inspect the results without installing dependencies.
-
-Sample images are included for demonstration. I do not claim ownership of third-party source artwork; rights remain with the respective creators. Use images you own or have permission to transform when making your own work.
+Algorithm reference: [Tanner Helland's dithering guide](https://tannerhelland.com/2012/12/28/dithering-eleven-algorithms-source-code.html). Renderer implementation, procedural fixtures and bitmap glyphs are in this repository.
