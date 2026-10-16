@@ -36,7 +36,7 @@ export function makeRecipe(settings, source) {
 }
 export function parseRecipe(value) {
   const r = typeof value === 'string' ? JSON.parse(value) : value;
-  if (!plain(r) || r.format !== 'raster-lab' || r.version !== 1 || r.engine !== ENGINE) throw new Error('This is not a supported Raster Lab v1 recipe.');
+  if (!plain(r) || r.format !== 'raster-lab' || r.version !== 1 || r.engine !== ENGINE) throw new Error('This is not a supported Image to Pixels v1 recipe.');
   const s = r.source;
   if (!plain(s) || !['sample', 'file'].includes(s.kind)) throw new Error('Recipe source is missing.');
   let source;

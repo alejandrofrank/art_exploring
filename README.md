@@ -1,4 +1,4 @@
-# Raster Lab
+# Image to Pixels
 
 A browser workbench for exploring how an image changes when represented with pixels, a limited palette, dithering or characters. Evolved from the Python ASCII experiments in this repository.
 

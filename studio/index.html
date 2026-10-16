@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Raster Lab — pixels, dither, ASCII</title>
+  <title>Image to Pixels — pixels, dither, ASCII</title>
   <meta name="description" content="An image workbench for pixels, dithering and ASCII. Compare treatments, edit palettes and export reproducible recipes. Everything runs in your browser.">
   <link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="./style.css">
   <script type="module" src="./app.mjs"></script>
 </head>
 <body>
-  <header class="topbar"><div class="brand"><span class="mark" aria-hidden="true">▦</span><div><h1>Raster Lab</h1><p>Pixels / dither / ASCII</p></div></div><div class="toplinks"><span class="local">● Runs on your device</span><a href="https://github.com/alejandrofrank/art_exploring" target="_blank" rel="noreferrer">Source ↗</a></div></header>
+  <header class="topbar"><div class="brand"><span class="mark" aria-hidden="true">▦</span><div><h1>Image to Pixels</h1><p>Pixels / dither / ASCII</p></div></div><div class="toplinks"><span class="local">● Runs on your device</span><a href="https://github.com/alejandrofrank/art_exploring" target="_blank" rel="noreferrer">Source ↗</a></div></header>
   <main>
     <div class="sourcebar"><div><button id="open-image" class="primary">Open image <span aria-hidden="true">↗</span></button><input id="image-file" type="file" accept="image/png,image/jpeg,image/webp" hidden><span class="hint">or drop a PNG, JPEG or WebP · 20 MB max</span></div><p id="source-info">Loading example…</p></div>
     <div id="notice" class="notice" role="status" hidden></div>
@@ -35,7 +35,7 @@
       </section>
     </div>
   </main>
-  <footer><span>Raster Lab / v1</span><span>Built by <a href="https://me.alejandrofranks.workers.dev">Alejandro Frank</a> · evolved from art_exploring</span></footer>
+  <footer><span>Image to Pixels / v1</span><span>Built by <a href="https://me.alejandrofranks.workers.dev">Alejandro Frank</a> · evolved from art_exploring</span></footer>
   <noscript>This workbench needs JavaScript to process images locally. The Python converter is available in the source repository.</noscript>
 </body>
 </html>

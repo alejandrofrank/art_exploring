@@ -13,4 +13,4 @@ createServer(async (req, res) => {
     const body = await readFile(file);
     res.writeHead(200, { 'Content-Type': `${types[extname(file)] || 'application/octet-stream'}; charset=utf-8`, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); res.end(body);
   } catch { res.writeHead(404, { 'Content-Type': 'text/plain' }).end('Not found'); }
-}).listen(port, '127.0.0.1', () => console.log(`Raster Lab: http://127.0.0.1:${port}`));
+}).listen(port, '127.0.0.1', () => console.log(`Image to Pixels: http://127.0.0.1:${port}`));
